@@ -1,3 +1,4 @@
+
 import pygame
 
 from jugador import Jugador # Importa la clase Jugador desde el archivo jugador.py para poder crear una instancia del jugador en el juego.
