@@ -6,80 +6,124 @@ import pygame
 from audio import Audio
 
 
-ANCHO = 800  # Ancho de la ventana del juego.
-ALTO = 600  # Alto de la ventana del juego.
-VELOCIDAD = 300  # Velocidad de desplazamiento del jugador en píxeles por segundo.
+# Define el tamaño de la ventana del juego.
+ANCHO = 800
+ALTO = 600
+
+# Define el tamaño y la velocidad del jugador.
+TAM_JUGADOR = 50
+VELOCIDAD_JUGADOR = 300
+
+# Define el tamaño del objetivo que el jugador debe recoger.
+TAM_OBJETIVO = 36
+
+
+def colocar_objetivo(objetivo, jugador):
+    # Elige una posición aleatoria dentro de la ventana.
+    # Si el objetivo aparece sobre el jugador, vuelve a elegirla.
+    while True:
+        objetivo.center = (
+            random.randint(TAM_OBJETIVO // 2, ANCHO - TAM_OBJETIVO // 2),
+            random.randint(TAM_OBJETIVO // 2, ALTO - TAM_OBJETIVO // 2),
+        )
+
+        if not objetivo.colliderect(jugador):
+            break
 
 
 def main():
-    pygame.init()  # Inicializa todos los módulos de Pygame.
+    # Inicializa Pygame antes de crear la ventana y el sistema de audio.
+    pygame.init()
 
-    pantalla = pygame.display.set_mode((ANCHO, ALTO))  # Crea la ventana principal del juego.
-    pygame.display.set_caption("Ejercicio 1 - Sonido y música")  # Define el título de la ventana.
+    pantalla = pygame.display.set_mode((ANCHO, ALTO))
+    pygame.display.set_caption("Ejercicio 1 - Sonido y música")
 
-    reloj = pygame.time.Clock()  # Controla el tiempo del juego para mantener una tasa de fotogramas estable.
-    fuente = pygame.font.Font(None, 32)  # Fuente utilizada para mostrar el puntaje.
-    audio = Audio()  # Crea el objeto encargado de gestionar sonidos y música.
+    # El reloj controla los FPS y permite calcular delta time.
+    reloj = pygame.time.Clock()
+    fuente = pygame.font.Font(None, 32)
 
-    jugador = pygame.Rect(100, 100, 50, 50)  # Rectángulo que representa al personaje controlado por el jugador.
-    posicion_jugador = pygame.Vector2(jugador.topleft)  # Guarda la posición exacta del jugador con coordenadas flotantes.
+    # Crea el sistema de audio una sola vez, fuera del bucle principal.
+    audio = Audio()
 
-    objetivo = pygame.Rect(0, 0, 36, 36)  # Rectángulo que representa el objetivo a recoger.
-    objetivo.center = (
-        random.randint(18, ANCHO - 18),
-        random.randint(18, ALTO - 18),
-    )  # Coloca el objetivo en una posición aleatoria dentro de la pantalla.
+    # Crea al jugador y guarda su posición con decimales
+    # para que el movimiento con delta time sea más preciso.
+    jugador = pygame.Rect(100, 100, TAM_JUGADOR, TAM_JUGADOR)
+    posicion_jugador = pygame.Vector2(jugador.topleft)
 
-    puntaje = 0  # Acumula la cantidad de objetivos recogidos.
-    ejecutando = True  # Controla el ciclo principal del juego.
+    # Crea el objetivo y lo coloca en una posición aleatoria.
+    objetivo = pygame.Rect(0, 0, TAM_OBJETIVO, TAM_OBJETIVO)
+    colocar_objetivo(objetivo, jugador)
 
+    puntaje = 0
+    ejecutando = True
+
+    # Bucle principal: procesa eventos, actualiza el juego y dibuja la pantalla.
     while ejecutando:
-        dt = reloj.tick(60) / 1000.0  # Calcula el tiempo transcurrido entre frames para mover al jugador de forma uniforme.
+        # Convierte el tiempo transcurrido del cuadro a segundos.
+        dt = reloj.tick(60) / 1000.0
 
+        # Comprueba si el jugador cerró la ventana.
         for evento in pygame.event.get():
-            if evento.type == pygame.QUIT:  # Si el usuario cierra la ventana, termina el juego.
+            if evento.type == pygame.QUIT:
                 ejecutando = False
 
-        teclas = pygame.key.get_pressed()  # Obtiene el estado de todas las teclas del teclado.
-        direccion = pygame.Vector2(0, 0)  # Vector que representa la dirección del movimiento del jugador.
+        # Lee las teclas presionadas para decidir hacia dónde mover al jugador.
+        teclas = pygame.key.get_pressed()
+        direccion = pygame.Vector2(0, 0)
 
         if teclas[pygame.K_LEFT]:
-            direccion.x -= 1  # Mueve al jugador hacia la izquierda.
+            direccion.x -= 1
         if teclas[pygame.K_RIGHT]:
-            direccion.x += 1  # Mueve al jugador hacia la derecha.
+            direccion.x += 1
         if teclas[pygame.K_UP]:
-            direccion.y -= 1  # Mueve al jugador hacia arriba.
+            direccion.y -= 1
         if teclas[pygame.K_DOWN]:
-            direccion.y += 1  # Mueve al jugador hacia abajo.
+            direccion.y += 1
 
+        # Normaliza la dirección para que el movimiento diagonal no sea más rápido que el movimiento horizontal o vertical.
         if direccion.length_squared() > 0:
-            direccion = direccion.normalize()  # Normaliza el vector para que el movimiento tenga velocidad constante.
+            direccion = direccion.normalize()
 
-        posicion_jugador += direccion * VELOCIDAD * dt  # Actualiza la posición con la velocidad y el tiempo.
-        jugador.topleft = (round(posicion_jugador.x), round(posicion_jugador.y))  # Redondea la posición para convertirla a enteros.
-        jugador.clamp_ip(pantalla.get_rect())  # Mantiene al jugador dentro de los límites de la ventana.
-        posicion_jugador = pygame.Vector2(jugador.topleft)  # Guarda la posición actualizada en el vector.
+        # Actualiza la posición según la velocidad y el tiempo transcurrido.
+        posicion_jugador += direccion * VELOCIDAD_JUGADOR * dt
+        jugador.topleft = (
+            round(posicion_jugador.x),
+            round(posicion_jugador.y),
+        )
 
+        # Mantiene al jugador dentro de los límites de la ventana.
+        jugador.clamp_ip(pantalla.get_rect())
+
+        # Sincroniza la posición precisa con el rectángulo después del límite.
+        posicion_jugador = pygame.Vector2(jugador.topleft)
+
+        # Al tocar el objetivo, suma un punto, reproduce el efecto
+        # y coloca el objetivo en una nueva posición.
         if jugador.colliderect(objetivo):
-            puntaje += 1  # Incrementa el puntaje cuando el jugador toca el objetivo.
-            audio.reproducir("punto")  # Reproduce el efecto de sonido de punto.
-            objetivo.center = (
-                random.randint(18, ANCHO - 18),
-                random.randint(18, ALTO - 18),
-            )  # Genera una nueva posición para el objetivo.
+            puntaje += 1
+            audio.reproducir_punto()
+            colocar_objetivo(objetivo, jugador)
 
-        pantalla.fill((30, 30, 30))  # Rellena la pantalla con un fondo oscuro.
-        pygame.draw.rect(pantalla, (40, 180, 255), jugador)  # Dibuja al jugador como un rectángulo azul.
-        pygame.draw.circle(pantalla, (255, 210, 40), objetivo.center, 18)  # Dibuja el objetivo como un círculo amarillo.
+        # Limpia la pantalla y dibuja el jugador y el objetivo.
+        pantalla.fill((30, 30, 30))
+        pygame.draw.rect(pantalla, (40, 180, 255), jugador)
+        pygame.draw.rect(pantalla, (255, 210, 40), objetivo)
 
-        texto = fuente.render(f"Puntaje: {puntaje}", True, (255, 255, 255))  # Crea la imagen del texto del puntaje.
-        pantalla.blit(texto, (10, 10))  # Muestra el puntaje en la parte superior izquierda.
+        # Muestra el puntaje en la esquina superior izquierda.
+        texto_puntaje = fuente.render(
+            f"Puntaje: {puntaje}",
+            True,
+            (255, 255, 255),
+        )
+        pantalla.blit(texto_puntaje, (10, 10))
 
-        pygame.display.flip()  # Actualiza la pantalla con todo lo dibujado.
+        # Presenta en pantalla todo lo dibujado en este cuadro.
+        pygame.display.flip()
 
-    audio.detener_musica()  # Detiene la música de fondo al salir del juego.
-    pygame.quit()  # Cierra correctamente Pygame.
+    # Detiene la música y cierra Pygame al salir del bucle.
+    audio.detener_musica()
+    pygame.quit()
 
 
 if __name__ == "__main__":
-    main()  # Ejecuta la función principal cuando se corre el archivo.
+    main()
