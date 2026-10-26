@@ -1,3 +1,4 @@
+
 import pygame
 
 from camara import Camara # Importa la clase Camara desde el archivo camara.py para poder utilizarla en este script.
