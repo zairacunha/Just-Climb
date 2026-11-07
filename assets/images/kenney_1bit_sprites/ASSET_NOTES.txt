@@ -1,0 +1,4 @@
+JUST CLIMB uses selected transparent sprites from the Kenney 1-bit Platformer Pack.
+player.png: tile_0320; enemy.png: tile_0280; platform.png: tile_0270; powerup.png: tile_0007.
+The original tile size is 16 x 16 px. Collectible vials remain drawn by the game because this pack has no clearly matching vial sprite.
+The full Kenney license is included in Kenney_License.txt.
