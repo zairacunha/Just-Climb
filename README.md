@@ -20,6 +20,20 @@ La partida termina si el jugador pierde sus 3 vidas o si realiza un salto
 incorrecto y cae nuevamente hasta el piso 0. Si logra llegar hasta la cima sin
 caer y sin perder todas sus vidas, gana y escapa del edificio.
 
+## ⬇️ Descargar el juego (Windows)
+
+[![Descargar JustClimb.exe](https://img.shields.io/badge/Descargar-JustClimb.exe-c0392b?style=for-the-badge&logo=windows)](https://github.com/zairacunha/Just-Climb/releases/latest/download/JustClimb.exe)
+
+1. Descargá [**JustClimb.exe**](https://github.com/zairacunha/Just-Climb/releases/latest/download/JustClimb.exe) (unos 17 MB). Todas las versiones están en [Releases](https://github.com/zairacunha/Just-Climb/releases).
+2. Copialo a una carpeta común, por ejemplo el Escritorio. No lo pongas en
+   `C:\Archivos de programa`, porque Windows no deja guardar el ranking ahí.
+3. Abrilo con doble clic. No hace falta instalar Python.
+
+> Windows puede mostrar el aviso "Windows protegió su PC", porque el ejecutable
+> no está firmado. Hacé clic en **Más información** → **Ejecutar de todas formas**.
+
+El ranking se guarda en `database\ranking.db`, junto al `.exe`.
+
 ## Cómo jugar
 
 1. Ejecutar el juego.
@@ -144,6 +158,11 @@ guarda en `database\ranking.db`, junto al `.exe`.
 > el repositorio lo genera solo con **GitHub Actions** en cada push a `main`:
 > entrá a la pestaña **Actions**, abrí la última ejecución de "Generar .exe" y
 > descargá el artefacto `JustClimb-windows`.
+
+Para publicar una versión nueva del juego, creá un **Release** en GitHub
+(pestaña *Releases* → *Draft a new release*) y adjuntá el `.exe` con el nombre
+`JustClimb.exe`. El enlace de descarga de arriba apunta siempre a la última
+versión publicada.
 
 Para probarlo, copiá `JustClimb.exe` a una carpeta fuera del repositorio (por
 ejemplo, el Escritorio) y abrilo con doble clic. No lo pongas en
