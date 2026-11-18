@@ -25,6 +25,7 @@ son provisionales y se pueden ajustar en la sección de constantes.
 
 import random
 import sqlite3
+import sys
 from datetime import datetime
 from pathlib import Path
 
@@ -82,11 +83,20 @@ DURACION_ESCUDO = 10_000
 DURACION_SALTO_ALTO = 5 * 60 * 1000
 DURACION_TIEMPO_DETENIDO = 3_000
 
-# Detecta la raíz del proyecto tanto si se ejecuta src/main.py como main.py
-# desde la carpeta principal del repositorio.
-CARPETA_SCRIPT = Path(__file__).resolve().parent
-CARPETA_PROYECTO = CARPETA_SCRIPT.parent if CARPETA_SCRIPT.name == "src" else CARPETA_SCRIPT
-RUTA_BASE_DATOS = CARPETA_PROYECTO / "database" / "ranking.db"
+# Rutas del proyecto. Se distinguen dos casos:
+# - Ejecutable de PyInstaller (.exe): los assets se descomprimen en una carpeta
+#   temporal (sys._MEIPASS) que se borra al cerrar el juego. Por eso la base de
+#   datos se guarda junto al .exe, para que el ranking no se pierda.
+# - Código fuente: se detecta la raíz del proyecto tanto si se ejecuta
+#   src/main.py como main.py desde la carpeta principal del repositorio.
+if getattr(sys, "frozen", False):
+    CARPETA_PROYECTO = Path(sys._MEIPASS)
+    CARPETA_DATOS = Path(sys.executable).resolve().parent
+else:
+    CARPETA_SCRIPT = Path(__file__).resolve().parent
+    CARPETA_PROYECTO = CARPETA_SCRIPT.parent if CARPETA_SCRIPT.name == "src" else CARPETA_SCRIPT
+    CARPETA_DATOS = CARPETA_PROYECTO
+RUTA_BASE_DATOS = CARPETA_DATOS / "database" / "ranking.db"
 
 # Audios que el juego intenta cargar desde la carpeta de recursos.
 RUTA_SONIDOS = CARPETA_PROYECTO / "assets" / "sounds"
