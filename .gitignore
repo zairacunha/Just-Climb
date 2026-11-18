@@ -13,3 +13,8 @@ database/*.db
 # Archivos del editor
 .vscode/
 .idea/
+
+# Archivos generados por PyInstaller al crear el .exe
+build/
+dist/
+*.spec
