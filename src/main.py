@@ -768,14 +768,14 @@ def recoger_poder(estado, poder, ahora):
 
 
 def activar_teletransporte(estado):
-    """Coloca al personaje sobre una plataforma que esté por encima de él."""
+    """Coloca al personaje sobre una plataforma superior. Devuelve True si lo logró."""
     jugador = estado["jugador"]
     plataformas_superiores = [
         plataforma for plataforma in estado["plataformas"]
         if plataforma.y < jugador.y - 100
     ]
     if not plataformas_superiores:
-        return
+        return False
 
     # Escogemos una de las plataformas superiores más cercanas en altura.
     objetivo = max(plataformas_superiores, key=lambda plataforma: plataforma.y)
@@ -784,6 +784,7 @@ def activar_teletransporte(estado):
     estado["velocidad_y"] = 0
     estado["en_plataforma"] = True
     estado["puede_teletransportarse"] = False
+    return True
 
 
 def actualizar_partida(estado, teclas, teclas_presionadas, ahora, sonidos=None):
@@ -917,8 +918,9 @@ def activar_poderes(estado, evento, ahora):
         estado["puede_controlar_tiempo"] = False
         estado["tiempo_ya_usado"] = True
     elif evento.key == pygame.K_t and estado["puede_teletransportarse"]:
-        activar_teletransporte(estado)
-        estado["teletransporte_ya_usado"] = True
+        # Solo se gasta si realmente encontró una plataforma a la cual ir.
+        if activar_teletransporte(estado):
+            estado["teletransporte_ya_usado"] = True
 
 
 # ============================================================================
