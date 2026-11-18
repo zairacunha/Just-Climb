@@ -259,7 +259,7 @@ def guardar_puntaje(nombre, puntaje, piso, ruta=None):
     with sqlite3.connect(str(ruta)) as conexion:
         conexion.execute(
             "INSERT INTO ranking (nombre, puntaje, fecha, piso) VALUES (?, ?, ?, ?)",
-            (nombre[:20], int(puntaje), int(piso), fecha),
+            (nombre[:20], int(puntaje), fecha, int(piso)),
         )
         conexion.commit()
 
