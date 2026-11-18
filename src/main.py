@@ -91,7 +91,7 @@ RUTA_BASE_DATOS = CARPETA_PROYECTO / "database" / "ranking.db"
 # Audios que el juego intenta cargar desde la carpeta de recursos.
 RUTA_SONIDOS = CARPETA_PROYECTO / "assets" / "sounds"
 RUTA_PANEL_HUD = CARPETA_PROYECTO / "assets" / "images" / "ui" / "hud_panel.png"
-RUTA_SPRITES = CARPETA_PROYECTO / "assets" / "images" / "kenney_1bit"
+RUTA_SPRITES = CARPETA_PROYECTO / "assets" / "images" / "kenney_1bit_sprites"
 RUTA_FUENTE = CARPETA_PROYECTO / "assets" / "fonts" / "Kenney Pixel.ttf"
 NOMBRES_AUDIO = {
     # Los nombres que Ronron proporcionó aparecen primero para que se usen
