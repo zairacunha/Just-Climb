@@ -1,0 +1,54 @@
+# Genera JustClimb.exe en Windows cada vez que se sube un cambio a main
+# o a un Pull Request. El .exe se descarga desde la pestaña "Actions".
+name: Generar .exe
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v4
+
+      - name: Instalar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Generar el ejecutable
+        shell: cmd
+        run: build_exe.bat
+
+      - name: Probar que el .exe abre y crea el ranking
+        shell: pwsh
+        run: |
+          # Se copia el .exe a otra carpeta para comprobar que no depende
+          # de los archivos del repositorio.
+          New-Item -ItemType Directory -Force -Path prueba | Out-Null
+          Copy-Item dist\JustClimb.exe prueba\
+          $env:SDL_VIDEODRIVER = "dummy"
+          $env:SDL_AUDIODRIVER = "dummy"
+          $juego = Start-Process -FilePath prueba\JustClimb.exe -WorkingDirectory prueba -PassThru
+          Start-Sleep -Seconds 15
+          if ($juego.HasExited) {
+            Write-Error "El juego se cerró solo (código $($juego.ExitCode))."
+            exit 1
+          }
+          Stop-Process -Id $juego.Id -Force
+          if (-not (Test-Path prueba\database\ranking.db)) {
+            Write-Error "No se creó database\ranking.db junto al .exe."
+            exit 1
+          }
+          Write-Host "OK: el juego abrió y creó database\ranking.db junto al .exe."
+
+      - name: Publicar el .exe como artefacto
+        uses: actions/upload-artifact@v4
+        with:
+          name: JustClimb-windows
+          path: dist/JustClimb.exe

@@ -41,8 +41,14 @@ caer y sin perder todas sus vidas, gana y escapa del edificio.
 | Moverse hacia la izquierda | Flecha izquierda |
 | Moverse hacia la derecha | Flecha derecha |
 | Saltar | Barra espaciadora |
+| Usar Time Control | R |
+| Usar Get Me Out Of Here | T |
+| Pantalla completa | F11 |
 | Seleccionar una opción | Mouse o flechas del teclado |
-| Confirmar una opción | Mouse o tecla correspondiente |
+| Confirmar una opción | Mouse o Enter |
+| Volver a jugar / menú / salir (pantalla final) | R / M / ESC |
+
+> La ventana se puede agrandar o maximizar: el juego se escala sin deformarse.
 
 ## Power-ups
 
@@ -112,9 +118,37 @@ jugable.
 
 ```bash
 git clone git@github.com:zairacunha/Just-Climb.git
-cd just-climb
-
+cd Just-Climb
 ```
+
+### Instalar dependencias y jugar
+
+```bash
+python -m pip install -r requirements.txt
+python src/main.py
+```
+
+### Generar el ejecutable (.exe) para Windows
+
+En Windows, desde la raíz del repositorio:
+
+```bat
+build_exe.bat
+```
+
+El script instala PyInstaller y genera `dist\JustClimb.exe`, con todas las
+imágenes, sonidos y la fuente incluidos dentro del ejecutable. El ranking se
+guarda en `database\ranking.db`, junto al `.exe`.
+
+> PyInstaller no puede generar un `.exe` desde Mac o Linux. Si no tenés Windows,
+> el repositorio lo genera solo con **GitHub Actions** en cada push a `main`:
+> entrá a la pestaña **Actions**, abrí la última ejecución de "Generar .exe" y
+> descargá el artefacto `JustClimb-windows`.
+
+Para probarlo, copiá `JustClimb.exe` a una carpeta fuera del repositorio (por
+ejemplo, el Escritorio) y abrilo con doble clic. No lo pongas en
+`C:\Archivos de programa`, porque Windows no deja escribir el ranking ahí.
+
 ## Estado del proyecto
 
 🔨 En desarrollo

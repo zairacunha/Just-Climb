@@ -25,6 +25,7 @@ son provisionales y se pueden ajustar en la sección de constantes.
 
 import random
 import sqlite3
+import sys
 from datetime import datetime
 from pathlib import Path
 
@@ -82,16 +83,25 @@ DURACION_ESCUDO = 10_000
 DURACION_SALTO_ALTO = 5 * 60 * 1000
 DURACION_TIEMPO_DETENIDO = 3_000
 
-# Detecta la raíz del proyecto tanto si se ejecuta src/main.py como main.py
-# desde la carpeta principal del repositorio.
-CARPETA_SCRIPT = Path(__file__).resolve().parent
-CARPETA_PROYECTO = CARPETA_SCRIPT.parent if CARPETA_SCRIPT.name == "src" else CARPETA_SCRIPT
-RUTA_BASE_DATOS = CARPETA_PROYECTO / "database" / "ranking.db"
+# Rutas del proyecto. Se distinguen dos casos:
+# - Ejecutable de PyInstaller (.exe): los assets se descomprimen en una carpeta
+#   temporal (sys._MEIPASS) que se borra al cerrar el juego. Por eso la base de
+#   datos se guarda junto al .exe, para que el ranking no se pierda.
+# - Código fuente: se detecta la raíz del proyecto tanto si se ejecuta
+#   src/main.py como main.py desde la carpeta principal del repositorio.
+if getattr(sys, "frozen", False):
+    CARPETA_PROYECTO = Path(sys._MEIPASS)
+    CARPETA_DATOS = Path(sys.executable).resolve().parent
+else:
+    CARPETA_SCRIPT = Path(__file__).resolve().parent
+    CARPETA_PROYECTO = CARPETA_SCRIPT.parent if CARPETA_SCRIPT.name == "src" else CARPETA_SCRIPT
+    CARPETA_DATOS = CARPETA_PROYECTO
+RUTA_BASE_DATOS = CARPETA_DATOS / "database" / "ranking.db"
 
 # Audios que el juego intenta cargar desde la carpeta de recursos.
 RUTA_SONIDOS = CARPETA_PROYECTO / "assets" / "sounds"
 RUTA_PANEL_HUD = CARPETA_PROYECTO / "assets" / "images" / "ui" / "hud_panel.png"
-RUTA_SPRITES = CARPETA_PROYECTO / "assets" / "images" / "kenney_1bit"
+RUTA_SPRITES = CARPETA_PROYECTO / "assets" / "images" / "kenney_1bit_sprites"
 RUTA_FUENTE = CARPETA_PROYECTO / "assets" / "fonts" / "Kenney Pixel.ttf"
 NOMBRES_AUDIO = {
     # Los nombres que Ronron proporcionó aparecen primero para que se usen
@@ -259,7 +269,7 @@ def guardar_puntaje(nombre, puntaje, piso, ruta=None):
     with sqlite3.connect(str(ruta)) as conexion:
         conexion.execute(
             "INSERT INTO ranking (nombre, puntaje, fecha, piso) VALUES (?, ?, ?, ?)",
-            (nombre[:20], int(puntaje), int(piso), fecha),
+            (nombre[:20], int(puntaje), fecha, int(piso)),
         )
         conexion.commit()
 
@@ -565,7 +575,7 @@ def dibujar_ayuda(pantalla, fuentes):
         "A Second Chance: suma una vida. La caída termina la partida.",
         "Control del tiempo y Teletransporte se usan una vez.",
         "",
-        "Pulsa ESC o ENTER para volver al menú.",
+        "F11: pantalla completa.  ESC o ENTER: volver al menú.",
     ]
     for indice, linea in enumerate(lineas):
         dibujar_texto(pantalla, fuente_pequena, linea, ANCHO // 2, 145 + indice * 30,
@@ -768,14 +778,14 @@ def recoger_poder(estado, poder, ahora):
 
 
 def activar_teletransporte(estado):
-    """Coloca al personaje sobre una plataforma que esté por encima de él."""
+    """Coloca al personaje sobre una plataforma superior. Devuelve True si lo logró."""
     jugador = estado["jugador"]
     plataformas_superiores = [
         plataforma for plataforma in estado["plataformas"]
         if plataforma.y < jugador.y - 100
     ]
     if not plataformas_superiores:
-        return
+        return False
 
     # Escogemos una de las plataformas superiores más cercanas en altura.
     objetivo = max(plataformas_superiores, key=lambda plataforma: plataforma.y)
@@ -784,6 +794,7 @@ def activar_teletransporte(estado):
     estado["velocidad_y"] = 0
     estado["en_plataforma"] = True
     estado["puede_teletransportarse"] = False
+    return True
 
 
 def actualizar_partida(estado, teclas, teclas_presionadas, ahora, sonidos=None):
@@ -917,8 +928,9 @@ def activar_poderes(estado, evento, ahora):
         estado["puede_controlar_tiempo"] = False
         estado["tiempo_ya_usado"] = True
     elif evento.key == pygame.K_t and estado["puede_teletransportarse"]:
-        activar_teletransporte(estado)
-        estado["teletransporte_ya_usado"] = True
+        # Solo se gasta si realmente encontró una plataforma a la cual ir.
+        if activar_teletransporte(estado):
+            estado["teletransporte_ya_usado"] = True
 
 
 # ============================================================================
@@ -930,7 +942,10 @@ def main():
     pygame.init()
     sonidos = cargar_sonidos()
     iniciar_musica(sonidos)
-    pantalla = pygame.display.set_mode((ANCHO, ALTO))
+    # SCALED agranda la imagen al tamaño de la ventana sin cambiar la lógica:
+    # el juego sigue dibujando en 800x600 y el mouse se convierte solo.
+    # RESIZABLE permite agrandar o maximizar la ventana.
+    pantalla = pygame.display.set_mode((ANCHO, ALTO), pygame.SCALED | pygame.RESIZABLE)
     pygame.display.set_caption("JUST CLIMB — prototipo")
     reloj = pygame.time.Clock()
     textura_hud = cargar_panel_hud()
@@ -959,6 +974,10 @@ def main():
         for evento in pygame.event.get():
             if evento.type == pygame.QUIT:
                 corriendo = False
+
+            elif evento.type == pygame.KEYDOWN and evento.key == pygame.K_F11:
+                # F11 alterna pantalla completa en cualquier pantalla.
+                pygame.display.toggle_fullscreen()
 
             elif evento.type == pygame.KEYDOWN:
                 if pantalla_actual == "menu":
