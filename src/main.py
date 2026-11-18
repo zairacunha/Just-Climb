@@ -575,7 +575,7 @@ def dibujar_ayuda(pantalla, fuentes):
         "A Second Chance: suma una vida. La caída termina la partida.",
         "Control del tiempo y Teletransporte se usan una vez.",
         "",
-        "Pulsa ESC o ENTER para volver al menú.",
+        "F11: pantalla completa.  ESC o ENTER: volver al menú.",
     ]
     for indice, linea in enumerate(lineas):
         dibujar_texto(pantalla, fuente_pequena, linea, ANCHO // 2, 145 + indice * 30,
@@ -942,7 +942,10 @@ def main():
     pygame.init()
     sonidos = cargar_sonidos()
     iniciar_musica(sonidos)
-    pantalla = pygame.display.set_mode((ANCHO, ALTO))
+    # SCALED agranda la imagen al tamaño de la ventana sin cambiar la lógica:
+    # el juego sigue dibujando en 800x600 y el mouse se convierte solo.
+    # RESIZABLE permite agrandar o maximizar la ventana.
+    pantalla = pygame.display.set_mode((ANCHO, ALTO), pygame.SCALED | pygame.RESIZABLE)
     pygame.display.set_caption("JUST CLIMB — prototipo")
     reloj = pygame.time.Clock()
     textura_hud = cargar_panel_hud()
@@ -971,6 +974,10 @@ def main():
         for evento in pygame.event.get():
             if evento.type == pygame.QUIT:
                 corriendo = False
+
+            elif evento.type == pygame.KEYDOWN and evento.key == pygame.K_F11:
+                # F11 alterna pantalla completa en cualquier pantalla.
+                pygame.display.toggle_fullscreen()
 
             elif evento.type == pygame.KEYDOWN:
                 if pantalla_actual == "menu":
